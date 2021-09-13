@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.validators import ValidationError
 
 from accounts.serializers import BoardMemberSerializer
-from .models import Board, Task, Column, Label, Comment
+from .models import Board, Task, Column, Label, Comment, UpVote
 
 User = get_user_model()
 
@@ -87,6 +87,10 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ["id", "task", "author", "text", "created", "modified"]
 
+class UpVoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UpVote
+        fields = ["id", "task", "author", "votes", "created", "modified"]
 
 class ColumnSerializer(BoardModelSerializer):
     board = serializers.PrimaryKeyRelatedField(queryset=Board.objects.all())

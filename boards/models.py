@@ -94,3 +94,11 @@ class Comment(TimeStampedModel):
 
     class Meta:
         ordering = ["created"]
+
+class UpVote(models.Model):
+    task = models.ForeignKey(
+        Task, on_delete=models.CASCADE, related_name="votes")
+    author = models.ForeignKey(
+        User, on_delete=models.PROTECT, related_name="votes")
+    votes = models.PositiveIntegerField(default=0)
+    

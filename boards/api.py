@@ -14,7 +14,7 @@ from rest_framework.viewsets import GenericViewSet
 from django.db.models import Q
 from django.db.models import Prefetch
 
-from .models import Board, Task, Column, Label, Comment
+from .models import Board, Task, Column, Label, Comment, UpVote
 from .permissions import IsOwner, IsOwnerForDangerousMethods
 from .serializers import (
     BoardSerializer,
@@ -25,6 +25,7 @@ from .serializers import (
     BoardMemberSerializer,
     LabelSerializer,
     CommentSerializer,
+    UpVoteSerializer,
 )
 from .viewsets import ModelDetailViewSet
 
@@ -129,6 +130,47 @@ class CommentViewSet(
 ):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["task"]
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .filter(task__column__board__members=self.request.user)
+        )
+
+    def create(self, request, *args, **kwargs):
+        request.data.update(dict(author=request.user.id))
+
+        if (
+            self.request.user
+            not in Task.objects.get(
+                id=request.data.get("task")
+            ).column.board.members.all()
+        ):
+            return Response(status=HTTP_400_BAD_REQUEST)
+
+        return super().create(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        request.data.update(dict(author=request.user.id))
+
+        if self.request.user != self.get_object().author:
+            return Response(status=HTTP_400_BAD_REQUEST)
+
+        return super().destroy(request, *args, **kwargs)
+
+class UpVoteViewSet(
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
+    queryset = UpVote.objects.all()
+    serializer_class = UpVoteSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["task"]

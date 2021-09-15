@@ -1,7 +1,7 @@
 from adminsortable.admin import SortableAdmin
 from django.contrib import admin
 
-from .models import Board, Label, Column, Task
+from .models import Board, Label, Column, Task, UpVote
 
 
 class LabelAdmin(admin.ModelAdmin):
@@ -17,3 +17,4 @@ admin.site.register(Label, LabelAdmin)
 admin.site.register(Board)
 admin.site.register(Column, SortableAdmin)
 admin.site.register(Task, SortableAdmin)
+admin.site.register(UpVote)

@@ -1,5 +1,5 @@
 from itertools import chain
-
+from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
@@ -93,6 +93,13 @@ class BoardViewSet(
             return Response(status=HTTP_400_BAD_REQUEST)
 
         self.get_object().members.add(*new_members)
+        sender = User.objects.get(username=self.request.user)
+        sender_email=sender.email
+        receiver = User.objects.get(username=User.objects.get(id__in=users_ids))
+        receiver_email=receiver.email
+        
+        send_mail('Hello','Board Shared.',sender_email,[receiver_email],fail_silently=False)
+        
         return Response(
             data=BoardMemberSerializer(instance=new_members, many=True).data
         )
